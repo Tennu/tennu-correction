@@ -1,0 +1,20 @@
+{
+  "name": "tennu-correction",
+  "version": "1.0.0",
+  "description": "A plugin for the Tennu IRC framework. Corrects previous messages. Requires Admin, and dbcore, and dblogger.",
+  "main": "plugin.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LordWingZero/tennu-correction"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Victorio Berra",
+  "license": "ISC",
+  "dependencies": {
+    "irc-colors": "^1.2.0",
+    "moment": "^2.10.6",
+    "request-promise": "^1.0.2"
+  }
+}
