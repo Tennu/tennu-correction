@@ -4,8 +4,7 @@ var format = require('util').format;
 // Will not change if 2 instances of tennu launched
 const helps = {
     "correction": [
-        "{{!}}correction <target>/<replacement>",
-        "Aliases: !c !cor",
+        "s/<target>/<replacement>",
         "Correct a previously said message."
     ]
 };
@@ -36,23 +35,17 @@ var TennuCorrection = {
 
        function handleCorrection(IRCMessage){
            
-           // Validate
-           var containsCorrDelim = IRCMessage.args.filter(function(arg){
-               return arg.indexOf('/') > -1;
-           });
-           if(IRCMessage.args.length === 0 || containsCorrDelim.length === 0)
+           // Lets do this quickly
+           var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+?)\/(.*?)$/);
+           
+           if(!isSearchAndReplace)
            {
-               return {
-                   intent: "notice",
-                   query: true,
-                   message: helps.correction
-               };
+               return;
            }
            
            // Build data for correction
-           var correctionData = IRCMessage.args.join(' ').split('/');
-           var target = correctionData[0];
-           var replacement = correctionData[1];
+           var target = isSearchAndReplace[1];
+           var replacement = isSearchAndReplace[2];
            
            return dbACorrectionPromise.then(function(correction){
                return correction.findCorrectable(target, IRCMessage.channel).then(function(locatedDBTarget){
@@ -72,9 +65,8 @@ var TennuCorrection = {
 
         return {
             handlers: {
-                "!correction !c !cor": handleCorrection,
+                "privmsg": handleCorrection,
             },
-            commands: ["correction"],
             help: {
                 "correction": helps.correction
             }

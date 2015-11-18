@@ -15,7 +15,7 @@ function findCorrectable(target, channel) {
     return this.knex.select('*')
         .from('message')
         .where('Channel', channel)
-        .andWhere('Message', 'NOT LIKE', '!c %')
+        .andWhere('Message', 'NOT LIKE', 's/%/%')
         .limit(30)
         .offset(0)
         .orderBy('Timestamp', 'desc')
