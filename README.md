@@ -2,7 +2,9 @@
 
 A plugin for the [tennu](https://github.com/Tennu/tennu) irc framework.
 
-A plugin for the Tennu IRC framework. Corrects previous messages. Compatible with [tennu-admin-cooldown](https://github.com/LordWingZero/tennu-admin-cooldown).
+Search and replace text in previous messages.
+
+Compatible with [tennu-admin-cooldown](https://github.com/LordWingZero/tennu-admin-cooldown).
 
 ## Examples
 - 8:22 Havvy: Hello world
