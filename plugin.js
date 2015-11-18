@@ -31,6 +31,7 @@ var TennuCorrection = {
             }
             else {
                 isAdmin = adminCooldown(cooldown);
+                client._logger.notice('tennu-correction: cooldowns enabled: ' + cooldown + ' seconds.');
             }
         }
 

@@ -4,7 +4,7 @@ A plugin for the [tennu](https://github.com/Tennu/tennu) irc framework.
 
 Search and replace text in previous messages.
 
-Compatible with [tennu-admin-cooldown](https://github.com/LordWingZero/tennu-admin-cooldown).
+Compatible with [tennu-cooldown](https://github.com/LordWingZero/tennu-cooldown). Lets regular users run it every X seconds.
 
 ## Examples
 - 8:22 Havvy: Hello world
