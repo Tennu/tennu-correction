@@ -14,54 +14,76 @@ var TennuCorrection = {
     requiresRoles: ["admin", "dbcore", "dblogger"],
     init: function(client, imports) {
 
-        const adminCooldown = client._plugins.getRole("admin-cooldown");
-
         const requiresAdminHelp = "Requires admin privileges.";
 
+        var correctionConfig = client.config("correction");
+
+        if (!correctionConfig) {
+            throw Error("tennu-correction: is missing some or all of its configuration.");
+        }
+
         var isAdmin = imports.admin.isAdmin;
+        const adminCooldown = client._plugins.getRole("cooldown");
         if (adminCooldown) {
-            var cooldown = client.config("correction")['cooldown'];
+            var cooldown = correctionConfig['cooldown'];
             if (!cooldown) {
                 client._logger.warn('tennu-correction: Cooldown plugin found but no cooldown defined.')
             }
             else {
-                isAdmin = adminCooldown.isAdmin;
+                isAdmin = adminCooldown(cooldown);
             }
         }
 
         const dbACorrectionPromise = imports.dbcore.then(function(knex) {
             return correction(knex);
-        });    
+        });
 
-       function handleCorrection(IRCMessage){
-           
-           // Lets do this quickly
-           var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+?)\/(.*?)$/);
-           
-           if(!isSearchAndReplace)
-           {
-               return;
-           }
-           
-           // Build data for correction
-           var target = isSearchAndReplace[1];
-           var replacement = isSearchAndReplace[2];
-           
-           return dbACorrectionPromise.then(function(correction){
-               return correction.findCorrectable(target, IRCMessage.channel).then(function(locatedDBTarget){
-                   if(!locatedDBTarget)
-                   {
-                       return {
-                           intent: "notice",
-                           query: true,
-                           message: format('I searched the last 30 messages to the channel but couldnt find anything with "%s" in it', target)
-                       };
-                   }
-                   var corrected = correction.correct(locatedDBTarget.Message, target, replacement);
-                   return format('Correction, <%s> %s', locatedDBTarget.FromNick, corrected);
-               });
-           });
-       }
+        function handleCorrection(IRCMessage) {
+
+            // Lets do this quickly
+            var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+?)\/(.*?)$/);
+
+            if (!isSearchAndReplace) {
+                return;
+            }
+
+            return isAdmin(IRCMessage.hostmask).then(function(isadmin) {
+                // isAdmin will be "undefined" if cooldown system is enabled
+                // isAdmin will be true/false if cooldown system is disabled
+                if (typeof(isAdmin) !== "undefined" && isAdmin === false) {
+                    throw new Error(requiresAdminHelp);
+                }
+
+                // Build data for correction
+                var target = isSearchAndReplace[1];
+                var replacement = isSearchAndReplace[2];
+
+                return dbACorrectionPromise.then(function(correction) {
+                    return correction.findCorrectable(target, IRCMessage.channel).then(function(locatedDBTarget) {
+                        if (!locatedDBTarget) {
+                            return {
+                                intent: "notice",
+                                query: true,
+                                message: format('I searched the last 30 messages to the channel but couldnt find anything with "%s" in it', target)
+                            };
+                        }
+                        var corrected = correction.correct(locatedDBTarget.Message, target, replacement);
+                        return format('Correction, <%s> %s', locatedDBTarget.FromNick, corrected);
+                    });
+                });
+
+
+            }).catch(adminFail);
+
+        }
+
+        function adminFail(err) {
+            return {
+                intent: 'notice',
+                query: true,
+                message: err
+            };
+        }
 
         return {
             handlers: {
