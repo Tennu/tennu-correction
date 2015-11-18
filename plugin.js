@@ -9,12 +9,12 @@ const helps = {
     ]
 };
 
+const requiresAdminHelp = "Requires admin privileges.";
+
 var TennuCorrection = {
     //dblogger forces users to meet the dependency. No logger, no data.
     requiresRoles: ["admin", "dbcore", "dblogger"],
     init: function(client, imports) {
-
-        const requiresAdminHelp = "Requires admin privileges.";
 
         var correctionConfig = client.config("correction");
 
@@ -49,9 +49,10 @@ var TennuCorrection = {
             }
 
             return isAdmin(IRCMessage.hostmask).then(function(isadmin) {
-                // isAdmin will be "undefined" if cooldown system is enabled
-                // isAdmin will be true/false if cooldown system is disabled
-                if (typeof(isAdmin) !== "undefined" && isAdmin === false) {
+
+                // isadmin will be "undefined" if cooldown system is enabled
+                // isadmin will be true/false if cooldown system is disabled
+                if (typeof(isadmin) !== "undefined" && isadmin === false) {
                     throw new Error(requiresAdminHelp);
                 }
 
