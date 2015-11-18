@@ -1,6 +1,6 @@
 {
   "name": "tennu-correction",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A plugin for the Tennu IRC framework. Corrects previous messages. Requires Admin, and dbcore, and dblogger.",
   "main": "plugin.js",
   "repository": {
