@@ -1,6 +1,6 @@
 {
   "name": "tennu-correction",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A plugin for the Tennu IRC framework. Search and replace text in previous messages.",
   "main": "plugin.js",
   "repository": {
