@@ -11,12 +11,12 @@ function correction(knex) {
 }
 
 // Returns one row, or undefined.
-function findCorrectable(target, channel) {
+function findCorrectable(lookBackLimit, target, channel) {
     return this.knex.select('*')
         .from('message')
         .where('Channel', channel)
         .andWhere('Message', 'NOT LIKE', 's/%/%')
-        .limit(30)
+        .limit(lookBackLimit)
         .offset(0)
         .orderBy('Timestamp', 'desc')
         .then(function(rows) {

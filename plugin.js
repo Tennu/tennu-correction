@@ -18,7 +18,7 @@ var TennuCorrection = {
 
         var correctionConfig = client.config("correction");
 
-        if (!correctionConfig) {
+        if (!correctionConfig || !correctionConfig.lookBackLimit) {
             throw Error("tennu-correction: is missing some or all of its configuration.");
         }
 
@@ -61,7 +61,7 @@ var TennuCorrection = {
                 var replacement = isSearchAndReplace[2];
 
                 return dbACorrectionPromise.then(function(correction) {
-                    return correction.findCorrectable(target, IRCMessage.channel).then(function(locatedDBTarget) {
+                    return correction.findCorrectable(correctionConfig.lookBackLimit, target, IRCMessage.channel).then(function(locatedDBTarget) {
                         if (!locatedDBTarget) {
                             return {
                                 intent: "notice",

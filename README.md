@@ -11,6 +11,14 @@ Compatible with [tennu-cooldown](https://github.com/LordWingZero/tennu-cooldown)
 - 8:23 Ownix: s/world/mars
 - 8:24 Bot: Correction, <Havvy> Hello **mars**
 
+### Configuration
+
+```javascript
+"correction": {
+    "lookBackLimit": 60,
+},
+```
+
 ### Requires
 - [tennu-admin](https://github.com/Tennu/tennu-admin)
 - [tennu-dblogger](https://github.com/LordWingZero/tennu-dblogger)
