@@ -12,7 +12,7 @@ const helps = {
 };
 
 var TennuCorrection = {
-    init: function(client, imports) {
+    init: function(client) {
 
         var correctionConfig = client.config("correction");
         if (!correctionConfig || !correctionConfig.lookBackLimit) {

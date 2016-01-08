@@ -8,7 +8,7 @@
     "url": "https://github.com/Tennu/tennu-correction"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha",
     "postversion": "git push && git push --tags && npm publish"
   },
   "author": "Victorio Berra",
@@ -17,5 +17,9 @@
     "bluebird": "^3.1.1",
     "irc-colors": "^1.2.0",
     "lodash": "^3.10.1"
+  },
+  "devDependencies": {
+    "mocha": "^2.3.4",
+    "should": "^8.0.2"
   }
 }
