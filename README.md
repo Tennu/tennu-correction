@@ -13,14 +13,9 @@ Search and replace text in previous messages.
 
 ```javascript
 "correction": {
-    "lookBackLimit": 60,
+    "lookBackLimit": 60, // memory usage caution, id keep this number reasonable.
 },
 ```
-
-### Requires
-- [tennu-dblogger](https://github.com/LordWingZero/tennu-dblogger)
-  - [tennu-dbcore](https://github.com/LordWingZero/tennu-dbcore)
-
 
 ### Installing Into Tennu
 

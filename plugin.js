@@ -1,5 +1,7 @@
-var correction = require('./correction');
 var format = require('util').format;
+var Promise = require('bluebird');
+var c = require('irc-colors');
+var _ = require('lodash');
 
 // Will not change if 2 instances of tennu launched
 const helps = {
@@ -10,63 +12,77 @@ const helps = {
 };
 
 var TennuCorrection = {
-    //dblogger forces users to meet the dependency. No logger, no data.
-    requiresRoles: ["dbcore", "dblogger"],
     init: function(client, imports) {
 
         var correctionConfig = client.config("correction");
-
         if (!correctionConfig || !correctionConfig.lookBackLimit) {
             throw Error("tennu-correction: is missing some or all of its configuration.");
         }
 
-        const dbACorrectionPromise = imports.dbcore.then(function(knex) {
-            return correction(knex);
-        });
+        var queueHandler = require('./lib/queue-handler')(correctionConfig.lookBackLimit);
+        var correctionMiddleware;
 
-        function handleCorrection(IRCMessage) {
-
-            // Lets do this quickly
+        function router(IRCMessage) {
             var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+?)\/(.*?)$/);
-
             if (!isSearchAndReplace) {
+                if (!_.isFunction(correctionMiddleware)) {
+                    queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
+                }
                 return;
             }
 
-            // Build data for correction
             var target = isSearchAndReplace[1];
             var replacement = isSearchAndReplace[2];
 
-            return dbACorrectionPromise.then(function(correction) {
-                return correction.findCorrectable(correctionConfig.lookBackLimit, target, IRCMessage.channel).then(function(locatedDBTarget) {
-                    if (!locatedDBTarget) {
-                        return {
-                            intent: "notice",
-                            query: true,
-                            message: format('I searched the last 30 messages to the channel but couldnt find anything with "%s" in it', target)
-                        };
-                    }
-                    var corrected = correction.correct(locatedDBTarget.Message, target, replacement);
-                    return format('Correction, <%s> %s', locatedDBTarget.FromNick, corrected);
-                });
-            });
-
+            if (_.isFunction(correctionMiddleware)) {
+                var middlewareResponse = callMiddleware(target, IRCMessage.channel, replacement);
+                if(!_.isUndefined(middlewareResponse)){
+                    return middlewareResponse;
+                }
+            }
+            
+            return handleCorrection(target, IRCMessage.channel, replacement);
         }
 
-        function adminFail(err) {
-            return {
-                intent: 'notice',
-                query: true,
-                message: err
-            };
+        function callMiddleware(target, channel, replacement) {
+            return correctionMiddleware(correctionConfig.lookBackLimit, target, channel, replacement);
+        }
+
+        function handleCorrection(target, channel, replacement) {
+            return Promise.try(function() {
+                return queueHandler.findCorrectable(target, channel);
+            }).then(function(maybeFound) {
+                if (!maybeFound) {
+                    return {
+                        intent: "notice",
+                        query: true,
+                        message: format('I searched the last %s messages to the channel but couldnt find anything with "%s" in it', correctionConfig.lookBackLimit, target)
+                    };
+                }
+                return getCorrected(maybeFound, target, replacement);
+            });
+        }
+
+        function getCorrected(IRCMessage, target, replacement) {
+            var replacementValue = c.bold(replacement);
+            var corrected = IRCMessage.message.replace(new RegExp(_.escapeRegExp(target), 'g'), replacementValue);
+            return format('Correction, <%s> %s', IRCMessage.nickname, corrected);
+        }
+
+        function addMiddleware(middleware) {
+            correctionMiddleware = middleware;
         }
 
         return {
             handlers: {
-                "privmsg": handleCorrection,
+                "privmsg": router,
             },
             help: {
                 "correction": helps.correction
+            },
+            exports: {
+                addMiddleware: addMiddleware,
+                correct: getCorrected
             }
         };
 

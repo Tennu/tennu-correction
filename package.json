@@ -14,6 +14,8 @@
   "author": "Victorio Berra",
   "license": "ISC",
   "dependencies": {
-    "irc-colors": "^1.2.0"
+    "bluebird": "^3.1.1",
+    "irc-colors": "^1.2.0",
+    "lodash": "^3.10.1"
   }
 }
