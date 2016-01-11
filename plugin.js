@@ -56,7 +56,7 @@ var TennuCorrection = {
                     return {
                         intent: "notice",
                         query: true,
-                        message: format('I searched the last %s messages to the channel but couldnt find anything with "%s" in it', correctionConfig.lookBackLimit, target)
+                        message: format('I searched the last %s in the cache but couldnt find anything with "%s" in it', correctionConfig.lookBackLimit, target)
                     };
                 }
                 return getCorrected(maybeFound, target, replacement);
