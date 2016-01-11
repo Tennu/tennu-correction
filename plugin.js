@@ -12,12 +12,14 @@ const helps = {
 };
 
 var TennuCorrection = {
+    configDefaults: {
+        "correction": {
+            "lookBackLimit": 60
+        },
+    },
     init: function(client) {
 
         var correctionConfig = client.config("correction");
-        if (!correctionConfig || !correctionConfig.lookBackLimit) {
-            throw Error("tennu-correction: is missing some or all of its configuration.");
-        }
 
         var queueHandler = require('./lib/queue-handler')(correctionConfig.lookBackLimit);
         var correctionMiddleware;
@@ -36,11 +38,11 @@ var TennuCorrection = {
 
             if (_.isFunction(correctionMiddleware)) {
                 var middlewareResponse = callMiddleware(target, IRCMessage.channel, replacement);
-                if(!_.isUndefined(middlewareResponse)){
+                if (!_.isUndefined(middlewareResponse)) {
                     return middlewareResponse;
                 }
             }
-            
+
             return handleCorrection(target, IRCMessage.channel, replacement);
         }
 
