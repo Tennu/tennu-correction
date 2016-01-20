@@ -22,21 +22,21 @@ var TennuCorrection = {
         var correctionConfig = client.config("correction");
 
         var queueHandler = require('./lib/queue-handler')(correctionConfig.lookBackLimit);
-        var correctionMiddleware;
+        
+        var middleware;
 
         function router(IRCMessage) {
+            
             var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+?)\/(.*?)$/);
             if (!isSearchAndReplace) {
-                if (!_.isFunction(correctionMiddleware)) {
-                    queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
-                }
+                queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
                 return;
             }
 
             var target = isSearchAndReplace[1];
             var replacement = isSearchAndReplace[2];
 
-            if (_.isFunction(correctionMiddleware)) {
+            if (_.isFunction(middleware)) {
                 var middlewareResponse = callMiddleware(target, IRCMessage.channel, replacement);
                 if (!_.isUndefined(middlewareResponse)) {
                     return middlewareResponse;
@@ -47,7 +47,7 @@ var TennuCorrection = {
         }
 
         function callMiddleware(target, channel, replacement) {
-            return correctionMiddleware(correctionConfig.lookBackLimit, target, channel, replacement);
+            return middleware(correctionConfig.lookBackLimit, target, channel, replacement);
         }
 
         function handleCorrection(target, channel, replacement) {
@@ -71,10 +71,6 @@ var TennuCorrection = {
             return format('Correction, <%s> %s', IRCMessage.nickname, corrected);
         }
 
-        function addMiddleware(middleware) {
-            correctionMiddleware = middleware;
-        }
-
         return {
             handlers: {
                 "privmsg": router,
@@ -83,7 +79,7 @@ var TennuCorrection = {
                 "correction": helps.correction
             },
             exports: {
-                addMiddleware: addMiddleware,
+                middleware: middleware,
                 correct: getCorrected
             }
         };
