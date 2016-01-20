@@ -16,7 +16,8 @@
   "dependencies": {
     "bluebird": "^3.1.1",
     "irc-colors": "^1.2.0",
-    "lodash": "^3.10.1"
+    "lodash": "^3.10.1",
+    "split-fwd-slash": "^1.0.1"
   },
   "devDependencies": {
     "mocha": "^2.3.4",

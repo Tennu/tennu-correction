@@ -1,15 +1,23 @@
 var format = require('util').format;
 var Promise = require('bluebird');
+var split = require('split-fwd-slash');
 var c = require('irc-colors');
 var _ = require('lodash');
 
-// Will not change if 2 instances of tennu launched
 const helps = {
     "correction": [
         "s/<target>/<replacement>",
         "Correct a previously said message."
     ]
 };
+
+const _getNotice = function(msg) {
+    return {
+        intent: 'notice',
+        query: true,
+        message: msg
+    };
+}
 
 var TennuCorrection = {
     configDefaults: {
@@ -26,29 +34,34 @@ var TennuCorrection = {
         var middleware;
 
         function router(IRCMessage) {
+            return Promise.try(function() {
+                var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+)/);
+                if (!isSearchAndReplace) {
+                    queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
+                    return;
+                }
 
-            var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+?)\/(.*?)$/);
-            if (!isSearchAndReplace) {
-                queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
-                return;
-            }
+                isSearchAndReplace = split(IRCMessage.message);
 
-            var target = isSearchAndReplace[1];
-            var replacement = isSearchAndReplace[2];
+                if (isSearchAndReplace.length !== 3) {
+                    return _getNotice('Your search and replace did not have exactly one target, and one response. Make sure youre escaping slashes properlly.');
+                }
 
-            if (_.isFunction(middleware)) {
-                return Promise.try(function() {
+                var target = isSearchAndReplace[1];
+                var replacement = isSearchAndReplace[2];
+
+                if (_.isFunction(middleware)) {
                     var middlewareResponse = callMiddleware(target, IRCMessage.channel, replacement);
                     if (!_.isUndefined(middlewareResponse)) {
                         return middlewareResponse;
                     }
-                }).catch(function(err) {
-                    client._logger.error('Error in middleware.');
-                    client._logger.error(err);
-                });
-            }
+                }
 
-            return handleCorrection(target, IRCMessage.channel, replacement);
+                return handleCorrection(target, IRCMessage.channel, replacement);
+            }).catch(function(err) {
+                client._logger.error('Error in tennu-correction.');
+                client._logger.error(err);
+            });
         }
 
         function callMiddleware(target, channel, replacement) {
@@ -56,15 +69,9 @@ var TennuCorrection = {
         }
 
         function handleCorrection(target, channel, replacement) {
-            return Promise.try(function() {
-                return queueHandler.findCorrectable(target, channel);
-            }).then(function(maybeFound) {
+            return queueHandler.findCorrectable(target, channel).then(function(maybeFound) {
                 if (!maybeFound) {
-                    return {
-                        intent: "notice",
-                        query: true,
-                        message: format('I searched the last %s in the cache but couldnt find anything with "%s" in it', correctionConfig.lookBackLimit, target)
-                    };
+                    return _getNotice(format('I searched the last %s in the cache but couldnt find anything with "%s" in it', correctionConfig.lookBackLimit, target));
                 }
                 return getCorrected(maybeFound, target, replacement);
             });
