@@ -22,11 +22,11 @@ var TennuCorrection = {
         var correctionConfig = client.config("correction");
 
         var queueHandler = require('./lib/queue-handler')(correctionConfig.lookBackLimit);
-        
+
         var middleware;
 
         function router(IRCMessage) {
-            
+
             var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+?)\/(.*?)$/);
             if (!isSearchAndReplace) {
                 queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
@@ -37,10 +37,15 @@ var TennuCorrection = {
             var replacement = isSearchAndReplace[2];
 
             if (_.isFunction(middleware)) {
-                var middlewareResponse = callMiddleware(target, IRCMessage.channel, replacement);
-                if (!_.isUndefined(middlewareResponse)) {
-                    return middlewareResponse;
-                }
+                return Promise.try(function() {
+                    var middlewareResponse = callMiddleware(target, IRCMessage.channel, replacement);
+                    if (!_.isUndefined(middlewareResponse)) {
+                        return middlewareResponse;
+                    }
+                }).catch(function(err) {
+                    client._logger.error('Error in middleware.');
+                    client._logger.error(err);
+                });
             }
 
             return handleCorrection(target, IRCMessage.channel, replacement);
@@ -71,6 +76,10 @@ var TennuCorrection = {
             return format('Correction, <%s> %s', IRCMessage.nickname, corrected);
         }
 
+        var addMiddleware = function(newMiddleware) {
+            middleware = newMiddleware;
+        };
+
         return {
             handlers: {
                 "privmsg": router,
@@ -79,8 +88,7 @@ var TennuCorrection = {
                 "correction": helps.correction
             },
             exports: {
-                middleware: middleware,
-                correct: getCorrected
+                addMiddleware: addMiddleware
             }
         };
 

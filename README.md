@@ -17,6 +17,9 @@ Search and replace text in previous messages.
 },
 ```
 
+### Exports
+````addMiddleware()````: Lets you decide what happens after someone does s/whatever/everwhat
+
 ### Installing Into Tennu
 
 See Downloadable Plugins [here](https://tennu.github.io/plugins/).

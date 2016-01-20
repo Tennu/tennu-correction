@@ -21,4 +21,14 @@ describe('tennu-correction', function() {
             channel: '#helloworld'
         }).should.eventually.be.equal('Correction, <tester> \u0002goodbye world\u0002');
     });
+    it('Should use middleware.', function() {
+        plugin.exports.addMiddleware(function() {
+            return 42;
+        });
+        plugin.handlers['privmsg']({
+            message: 's/hello world/goodbye world',
+            nickname: 'smith',
+            channel: '#helloworld'
+        }).should.eventually.be.equal(42);
+    });
 });
