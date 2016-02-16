@@ -95,7 +95,8 @@ var TennuCorrection = {
                 "correction": helps.correction
             },
             exports: {
-                addMiddleware: addMiddleware
+                addMiddleware: addMiddleware,
+                queueHandler: queueHandler
             }
         };
 
