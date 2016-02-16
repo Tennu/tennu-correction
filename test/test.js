@@ -1,6 +1,11 @@
 var should = require('should');
 
 var plugin = require('../plugin').init({
+    _logger: {
+        error: function(msg){
+            console.log(msg);
+        }
+    },
     config: function() {
         return {
             lookBackLimit: 3

@@ -35,33 +35,42 @@ var TennuCorrection = {
 
         function router(IRCMessage) {
             return Promise.try(function() {
-                var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+)/);
-                if (!isSearchAndReplace) {
-                    queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
-                    return;
-                }
-
-                isSearchAndReplace = split(IRCMessage.message);
-
-                if (isSearchAndReplace.length !== 3) {
-                    return _getNotice('Your search and replace did not have exactly one target, and one response. Make sure youre escaping slashes properlly.');
-                }
-
-                var target = isSearchAndReplace[1];
-                var replacement = isSearchAndReplace[2];
-
-                if (_.isFunction(middleware)) {
-                    var middlewareResponse = callMiddleware(target, IRCMessage.channel, replacement);
-                    if (!_.isUndefined(middlewareResponse)) {
-                        return middlewareResponse;
+                    var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+)/);
+                    if (!isSearchAndReplace) {
+                        queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
+                        return;
                     }
-                }
 
-                return handleCorrection(target, IRCMessage.channel, replacement);
-            }).catch(function(err) {
-                client._logger.error('Error in tennu-correction.');
-                client._logger.error(err);
-            });
+                    isSearchAndReplace = split(IRCMessage.message);
+
+                    if (isSearchAndReplace.length !== 3) {
+                        return _getNotice('Your search and replace did not have exactly one target, and one response. Make sure youre escaping slashes properlly.');
+                    }
+
+                    var target = isSearchAndReplace[1];
+                    var replacement = isSearchAndReplace[2];
+
+                    return Promise.try(function() {
+                            if (_.isFunction(middleware)) {
+                                return callMiddleware(target, IRCMessage.channel, replacement);
+                            }
+                        })
+                        .then(function(middlewareResponse) {
+                            if (!_.isUndefined(middlewareResponse)) {
+                                return middlewareResponse;
+                            } else {
+                                return handleCorrection(target, IRCMessage.channel, replacement);                                
+                            }
+                        })
+                        .catch(function(err) {
+                            client._logger.error('Error in tennu-correction middleware');
+                            return err;
+                        });
+
+                })
+                .catch(function(err) {
+                    client._logger.error(err);
+                });
         }
 
         function callMiddleware(target, channel, replacement) {
