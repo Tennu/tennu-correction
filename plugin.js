@@ -35,7 +35,10 @@ var TennuCorrection = {
 
         function router(IRCMessage) {
             return Promise.try(function() {
-                    var isSearchAndReplace = IRCMessage.message.match(/^s\/(.+)/);
+                
+                
+                    var isSearchAndReplace = IRCMessage.message.match(/^[S|s]\/(.+)/);
+                    
                     if (!isSearchAndReplace) {
                         queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
                         return;
