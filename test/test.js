@@ -102,7 +102,7 @@ describe('tennu-correction', function() {
                 channel: '#helloworld'
             })
             .then(function(correctedMessage){
-                assert.ok(correctedMessage.indexOf('surprise') > -1);
+                assert.ok(correctedMessage.indexOf('\u0002surprise\u0002') > -1);
                 assert.ok(correctedMessage.indexOf('Correction, ') > -1);
             });
         });
@@ -119,7 +119,7 @@ describe('tennu-correction', function() {
                 channel: '#helloworld'
             })
             .then(function(correctedMessage){
-                assert.ok(correctedMessage.indexOf('surprise this is a sentence') > -1);
+                assert.ok(correctedMessage.indexOf('\u0002surprise this is a sentence\u0002') > -1);
             });
         });
     
@@ -135,7 +135,7 @@ describe('tennu-correction', function() {
                 channel: '#helloworld'
             })
             .then(function(correctedMessage){
-                assert.ok(correctedMessage.indexOf('http://www.google.com world') > -1);
+                assert.ok(correctedMessage.indexOf('\u0002http://www.google.com world\u0002') > -1);
             });
         });
     

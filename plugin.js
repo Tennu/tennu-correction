@@ -127,7 +127,7 @@ var TennuCorrection = {
             var randomMessage = IRCMessage.message;
             var words = randomMessage.split(/\s/);
             var randomWord = words[Math.floor(Math.random()*words.length)];
-            var randomReplaceResult = randomMessage.replace(randomWord, replacement);
+            var randomReplaceResult = randomMessage.replace(randomWord, c.bold(replacement));
             return format('Correction, <%s> %s', IRCMessage.nickname, randomReplaceResult);
         }
 
