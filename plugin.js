@@ -36,39 +36,67 @@ var TennuCorrection = {
         function router(IRCMessage) {
             return Promise.try(function() {
                 
-                
                     var isSearchAndReplace = IRCMessage.message.match(/^[S|s]\/(.+)/);
+                    var isSearchAndRandomReplace = IRCMessage.message.match(/^[R|r][A|a]\/(.+)/);
                     
-                    if (!isSearchAndReplace) {
+                    if (!isSearchAndReplace && !isSearchAndRandomReplace) {
                         queueHandler.update(IRCMessage.message, IRCMessage.channel, IRCMessage.nickname);
                         return;
                     }
 
-                    isSearchAndReplace = split(IRCMessage.message);
+                    var splitMessage = split(IRCMessage.message);
 
-                    if (isSearchAndReplace.length !== 3) {
-                        return _getNotice('Your search and replace did not have exactly one target, and one response. Make sure youre escaping slashes properlly.');
+                    if(isSearchAndReplace)
+                    {
+
+                        if (splitMessage.length !== 3) {
+                            return _getNotice('Your search and replace did not have exactly one target, and one response. Make sure youre escaping slashes properlly.');
+                        }
+    
+                        var target = splitMessage[1];
+                        var replacement = splitMessage[2];
+    
+                        return Promise.try(function() {
+                                if (_.isFunction(middleware)) {
+                                    return callMiddleware(target, IRCMessage.channel, replacement);
+                                }
+                            })
+                            .then(function(middlewareResponse) {
+                                if (!_.isUndefined(middlewareResponse)) {
+                                    return middlewareResponse;
+                                } else {
+                                    return handleCorrection(target, IRCMessage.channel, replacement);                                
+                                }
+                            })
+                            .catch(function(err) {
+                                client._logger.error('Error in tennu-correction middleware');
+                                return err;
+                            });
+                            
                     }
-
-                    var target = isSearchAndReplace[1];
-                    var replacement = isSearchAndReplace[2];
-
-                    return Promise.try(function() {
-                            if (_.isFunction(middleware)) {
-                                return callMiddleware(target, IRCMessage.channel, replacement);
-                            }
-                        })
-                        .then(function(middlewareResponse) {
-                            if (!_.isUndefined(middlewareResponse)) {
-                                return middlewareResponse;
-                            } else {
-                                return handleCorrection(target, IRCMessage.channel, replacement);                                
-                            }
-                        })
-                        .catch(function(err) {
-                            client._logger.error('Error in tennu-correction middleware');
-                            return err;
-                        });
+                    else if(isSearchAndRandomReplace)
+                    {
+                        
+                        var replacement = splitMessage[1];
+    
+                        return Promise.try(function() {
+                                if (_.isFunction(middleware)) {
+                                    return callMiddleware(null, IRCMessage.channel, replacement);
+                                }
+                            })
+                            .then(function(middlewareResponse) {
+                                if (!_.isUndefined(middlewareResponse)) {
+                                    return middlewareResponse;
+                                } else {
+                                    return handleRandomCorrection(IRCMessage.channel, replacement);                                
+                                }
+                            })
+                            .catch(function(err) {
+                                client._logger.error('Error in tennu-correction middleware');
+                                return err;
+                            });
+                    
+                    }
 
                 })
                 .catch(function(err) {
@@ -87,6 +115,20 @@ var TennuCorrection = {
                 }
                 return getCorrected(maybeFound, target, replacement);
             });
+        }
+
+        function handleRandomCorrection(channel, replacement) {
+            return queueHandler.getRandomMessage().then(function(randomMessage){
+                return correctRandomWord(randomMessage, replacement);
+            });
+        }
+
+        function correctRandomWord(IRCMessage, replacement) {
+            var randomMessage = IRCMessage.message;
+            var words = randomMessage.split(/\s/);
+            var randomWord = words[Math.floor(Math.random()*words.length)];
+            var randomReplaceResult = randomMessage.replace(randomWord, replacement);
+            return format('Correction, <%s> %s', IRCMessage.nickname, randomReplaceResult);
         }
 
         function getCorrected(IRCMessage, target, replacement) {

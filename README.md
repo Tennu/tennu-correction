@@ -9,6 +9,13 @@ Search and replace text in previous messages.
 - 8:23 Ownix: s/world/mars
 - 8:24 Bot: Correction, <Havvy> Hello **mars**
 
+## Examples (random replace)
+- 8:22 Havvy: Hello world
+- 8:23 Ownix: ra/surprise
+- 8:24 Bot: Correction, <Havvy> Hello **surprise**
+- OR
+- 8:24 Bot: Correction, <Havvy> **surprise** world
+
 ### Configuration
 
 ```javascript
