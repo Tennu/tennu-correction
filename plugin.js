@@ -118,7 +118,7 @@ var TennuCorrection = {
         }
 
         function handleRandomCorrection(channel, replacement) {
-            return queueHandler.getRandomMessage().then(function(randomMessage){
+            return queueHandler.getRandomMessage(channel).then(function(randomMessage){
                 return correctRandomWord(randomMessage, replacement);
             });
         }
